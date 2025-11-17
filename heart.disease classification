@@ -1,0 +1,605 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "private_outputs": true,
+      "provenance": [],
+      "authorship_tag": "ABX9TyOXBcroizorKAd0SJhKFjPX",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/domaamohamed00-ui/university-/blob/main/heart.disease%20classification\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "nRShAh58CESR"
+      },
+      "outputs": [],
+      "source": [
+        "import pandas as pd\n",
+        "import matplotlib.pyplot as plt\n",
+        "import seaborn as sns\n",
+        "import numpy as np # Added for numpy operations\n",
+        "from sklearn.preprocessing import LabelEncoder\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.linear_model import LogisticRegression # Added for Logistic Regression\n",
+        "from sklearn.neighbors import KNeighborsClassifier # Added for KNN Classifier\n",
+        "from sklearn.metrics import confusion_matrix # Added for confusion_matrix\n",
+        "\n",
+        "accuracies = {} # Initialized accuracies dictionary"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df = pd.read_csv('/content/heart.csv')"
+      ],
+      "metadata": {
+        "id": "FpFFI1oaG5RC"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.head()"
+      ],
+      "metadata": {
+        "id": "rph7smZeG5XI"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.info()"
+      ],
+      "metadata": {
+        "id": "hOvUqUVMG5Z7"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.shape"
+      ],
+      "metadata": {
+        "id": "7oluhfCHHS7K"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.isnull().sum()"
+      ],
+      "metadata": {
+        "id": "_UPvG36gHYhg"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.duplicated().sum()"
+      ],
+      "metadata": {
+        "id": "KfWF-cuPHnJY"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.drop_duplicates(inplace=True, keep = 'first')"
+      ],
+      "metadata": {
+        "id": "SlXIU2Z_HnMQ"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.shape"
+      ],
+      "metadata": {
+        "id": "m722nuC9HnTw"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.describe().T"
+      ],
+      "metadata": {
+        "id": "Rac0olTVN_1c"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df['target'].value_counts()"
+      ],
+      "metadata": {
+        "id": "JqMyhBxuIJGD"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df = df[df['ca'] < 4]  #CA IN KAGGLE 0<3 delete any num bigger than 3\n",
+        "DF = df[df['thal'] > 0] #THAL IN KAGGLE delete any num less than 0\n",
+        "print(df.shape)\n",
+        "print(f'len of data: {len(df)}')"
+      ],
+      "metadata": {
+        "id": "JyqMwcYpIJJ9"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.columns"
+      ],
+      "metadata": {
+        "id": "CDFnqCOYIJPg"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df = df.rename(\n",
+        "    columns = {\n",
+        "        'cp' : 'chest_pain_type',\n",
+        "        'trestbps':'resting_blood_pressure',\n",
+        "               'chol': 'cholesterol',\n",
+        "               'fbs': 'fasting_blood_sugar',\n",
+        "               'restecg' : 'resting_electrocardiogram',\n",
+        "               'thalach': 'max_heart_rate_achieved',\n",
+        "               'exang': 'exercise_induced_angina',\n",
+        "               'oldpeak': 'st_depression',\n",
+        "               'slope': 'st_slope',\n",
+        "               'ca':'num_major_vessels',\n",
+        "               'thal': 'thalassemia'},\n",
+        "    errors = \"raise\")"
+      ],
+      "metadata": {
+        "id": "mFkDawahIJVL"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.head()"
+      ],
+      "metadata": {
+        "id": "Ag2NpseFIJaW"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df['sex'][df['sex'] == 0] = 'female'\n",
+        "df['sex'][df['sex'] == 1] = 'male'"
+      ],
+      "metadata": {
+        "id": "XDGkJ4geOcu7"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.dtype"
+      ],
+      "metadata": {
+        "id": "-3EWrhZ25Udr"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "count = 0\n",
+        "for i in df.dtypes\n",
+        "if i == object:\n",
+        "  count += 1\n",
+        "\n",
+        "print(count)"
+      ],
+      "metadata": {
+        "id": "iHmATdRk5plp"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.describe(include='object')"
+      ],
+      "metadata": {
+        "id": "nvLjNriS6bA-"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "get_object_columns = [col for col in df.columns if df[col].dtypes == 'object']\n",
+        "get_object_columns"
+      ],
+      "metadata": {
+        "id": "aQWM9LPc6g4p"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "plt.figure(figsize = (16,10))\n",
+        "for i in get_object_columns:\n",
+        "    sns.catplot(y = \"target\", x = i, hue = \"sex\",data = df, kind = \"bar\",\n",
+        "               palette={\"male\": \"blue\", \"female\": \"pink\"})"
+      ],
+      "metadata": {
+        "id": "fly_ea8d69pE"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def label_encode_cat_features(data, cat_features):\n",
+        "  label_encoder = LabelEncoder()\n",
+        "  data_encoded = data.copy()\n",
+        "\n",
+        "  for col in cat_features:\n",
+        "    data_encoded[col] = label_encoder.fit_transform(data[col])\n",
+        "  data = data_encoded\n",
+        "  return data"
+      ],
+      "metadata": {
+        "id": "dzCn5mUq72aZ"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "cat_features = ['sex', 'fasting_blood_sugar', 'exercise_induced_angina', 'target',\n",
+        "                'chest_pain_type', 'resting_electrocardiogram', 'st_slope', 'thalassemia']"
+      ],
+      "metadata": {
+        "id": "H-CwQanX72dk"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df = label_encode_cat_features(df, cat_features)"
+      ],
+      "metadata": {
+        "id": "eX5LJEZR72g3"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.head()"
+      ],
+      "metadata": {
+        "id": "aR8sQegT72kC"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "X = df.iloc[ : , :-1]\n",
+        "y = df.iloc[ : , -1]"
+      ],
+      "metadata": {
+        "id": "8CW_MCmV72pU"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "X.head(2)"
+      ],
+      "metadata": {
+        "id": "mfxuT9yC-qiT"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "y.head(2)"
+      ],
+      "metadata": {
+        "id": "GiUzxGVw-v_S"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state=42, shuffle = True)"
+      ],
+      "metadata": {
+        "id": "_rI37GEQ-wCv"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "lr = LogisticRegression()\n",
+        "lr.fit(X_train,y_train)\n",
+        "acc = lr.score(X_test,y_test)*100\n",
+        "\n",
+        "accuracies['Logistic Regression'] = acc\n",
+        "print(\"Test Accuracy {:.2f}%\".format(acc))"
+      ],
+      "metadata": {
+        "id": "Vill1698-wGN"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "scoreList = []\n",
+        "for i in range(1,20):\n",
+        "    knn = KNeighborsClassifier(n_neighbors = i)  # n_neighbors means k\n",
+        "    knn.fit(X_train, y_train)\n",
+        "    scoreList.append(knn.score(X_test, y_test))\n",
+        "\n",
+        "plt.plot(range(1,20), scoreList)\n",
+        "plt.xticks(np.arange(1,20,1))\n",
+        "plt.xlabel(\"K value\")\n",
+        "plt.ylabel(\"Score\")\n",
+        "plt.show()\n",
+        "\n",
+        "acc = max(scoreList)*100\n",
+        "accuracies['KNN'] = acc\n",
+        "print(\"Maximum KNN Score is {:.2f}%\".format(acc))"
+      ],
+      "metadata": {
+        "id": "IPG5VlZy-wJD"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "accuracies"
+      ],
+      "metadata": {
+        "id": "2c0mEuc6CFxc"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.svm import SVC\n",
+        "\n",
+        "svc = SVC()\n",
+        "svc.fit(X_train, y_train)\n",
+        "\n",
+        "acc = svc.score(X_test,y_test)*100\n",
+        "accuracies['SVC'] = acc\n",
+        "print(f\"Test Accuracy of SVC Algorithm: {acc:.2f}%\")"
+      ],
+      "metadata": {
+        "id": "Clf-MOIw-wMv"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.naive_bayes import GaussianNB\n",
+        "nb = GaussianNB()\n",
+        "nb.fit(X_train, y_train)\n",
+        "\n",
+        "acc = nb.score(X_test,y_test)*100\n",
+        "accuracies['Naive Bayes'] = acc\n",
+        "print(f\"Accuracy of Naive Bayes: {acc:.2f}%\")"
+      ],
+      "metadata": {
+        "id": "cl-a3B79-wQG"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.tree import DecisionTreeClassifier\n",
+        "dtc = DecisionTreeClassifier()\n",
+        "dtc.fit(X_train, y_train)\n",
+        "\n",
+        "acc = dtc.score(X_test, y_test)*100\n",
+        "accuracies['Decision Tree'] = acc\n",
+        "print(f\"Decision Tree Test Accuracy {acc:.2f}%\")"
+      ],
+      "metadata": {
+        "id": "5ijMUt-3CS9C"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.ensemble import RandomForestClassifier\n",
+        "rf = RandomForestClassifier(n_estimators = 1000, random_state = 1)\n",
+        "rf.fit(X_train, y_train)\n",
+        "\n",
+        "acc = rf.score(X_test,y_test)*100\n",
+        "accuracies['Random Forest'] = acc\n",
+        "print(f\"Random Forest Algorithm Accuracy Score : {acc:.2f}%\")"
+      ],
+      "metadata": {
+        "id": "F6srqeZGCTJT"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "colors = [\"skyblue\", \"salmon\", \"lightgreen\", \"gold\", \"lightcoral\", \"plum\"]\n",
+        "\n",
+        "sns.set_style(\"whitegrid\")\n",
+        "plt.figure(figsize=(16, 5))\n",
+        "plt.yticks(np.arange(0, 110, 10))\n",
+        "plt.ylabel(\"Accuracy %\")\n",
+        "plt.xlabel(\"Algorithms\")\n",
+        "\n",
+        "\n",
+        "ax = sns.barplot(x=list(accuracies.keys()), y=list(accuracies.values()), palette=colors)\n",
+        "\n",
+        "\n",
+        "for i, v in enumerate(accuracies.values()):\n",
+        "    ax.text(i, v + 1, f\"{v:.2f}%\", color='black', ha='center', fontweight='bold')\n",
+        "\n",
+        "plt.title(\"Model Accuracy Comparison\")\n",
+        "plt.ylim(0, 110)\n",
+        "plt.show()"
+      ],
+      "metadata": {
+        "id": "akWieVxHCTQh"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "y_pred_lr  = lr.predict(X_test)\n",
+        "y_pred_knn = knn.predict(X_test)\n",
+        "y_pred_svc = svc.predict(X_test)\n",
+        "y_pred_nb  = nb.predict(X_test)\n",
+        "y_pred_dtc = dtc.predict(X_test)\n",
+        "y_pred_rf  = rf.predict(X_test)"
+      ],
+      "metadata": {
+        "id": "jbSnuWf5CTXF"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "cm_lr = confusion_matrix(y_test,y_pred_lr)\n",
+        "cm_knn = confusion_matrix(y_test,y_pred_knn)\n",
+        "cm_svc = confusion_matrix(y_test,y_pred_svc)\n",
+        "cm_nb = confusion_matrix(y_test,y_pred_nb)\n",
+        "cm_dtc = confusion_matrix(y_test,y_pred_dtc)\n",
+        "cm_rf = confusion_matrix(y_test,y_pred_rf)"
+      ],
+      "metadata": {
+        "id": "r8uVFkGOCm1F"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "models = [\n",
+        "    (\"Logistic Regression\", cm_lr),\n",
+        "    (\"K Nearest Neighbors\", cm_knn),\n",
+        "    (\"Support Vector Machine\", cm_svc),\n",
+        "    (\"Naive Bayes\", cm_nb),\n",
+        "    (\"Decision Tree Classifier\", cm_dtc),\n",
+        "    (\"Random Forest\", cm_rf)\n",
+        "]\n",
+        "\n",
+        "plt.figure(figsize=(24, 12))\n",
+        "plt.suptitle(\"Confusion Matrixes\", fontsize=24)\n",
+        "plt.subplots_adjust(wspace=0.4, hspace=0.4)\n",
+        "\n",
+        "for i, (title, cm) in enumerate(models, 1):\n",
+        "    plt.subplot(2, 3, i)\n",
+        "    plt.title(f\"{title} Confusion Matrix\")\n",
+        "    sns.heatmap(cm, annot=True, cmap=\"Blues\", fmt=\"d\", cbar=False, annot_kws={\"size\": 24})\n",
+        "\n",
+        "plt.show()"
+      ],
+      "metadata": {
+        "id": "WVhtzf7bCqMd"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
